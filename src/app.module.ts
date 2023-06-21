@@ -1,25 +1,41 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { HttpModule, HttpService } from '@nestjs/axios';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ProductsController } from './controllers/products.controller';
-import { CategoriesController } from './controllers/categories.controller';
-import { OrdersController } from './controllers/orders.controller';
-import { UsersController } from './controllers/users.controller';
-import { CustomersController } from './controllers/customers.controller';
-import { BrandsController } from './controllers/brands.controller';
-import { ProductsService } from './services/products.service';
+import { UsersModule } from './users/users.module';
+import { ProductsModule } from './products/products.module';
+import { firstValueFrom } from 'rxjs';
+import { DatabaseModule } from './database/database.module';
+import { enviroments } from './enviroments';
+
+const URL = 'https://jsonplaceholder.typicode.com/todos'
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: enviroments[process.env.NODE_ENV] || '.env',
+      isGlobal: true
+    }),
+    UsersModule,
+    ProductsModule,
+    HttpModule,
+    DatabaseModule
+  ],
   controllers: [
     AppController,
-    ProductsController,
-    CategoriesController,
-    OrdersController,
-    UsersController,
-    CustomersController,
-    BrandsController
   ],
-  providers: [AppService, ProductsService],
+  providers: [
+    AppService,
+    {
+      provide: 'TASKS',
+      useFactory: async (http: HttpService) => {
+        const request = http.get(URL)
+        const tasks = await firstValueFrom(request)
+        return tasks.data
+      },
+      inject: [HttpService]
+    }
+  ],
 })
-export class AppModule {}
+export class AppModule { }

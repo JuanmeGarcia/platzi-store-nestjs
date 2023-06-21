@@ -13,9 +13,9 @@ import {
   // Res
 } from '@nestjs/common';
 import { Response } from 'express'
-import { ProductsService } from 'src/services/products.service';
+import { ProductsService } from 'src/products/services/products.service';
 import { ParseIntPipe } from 'src/common/parse-int.pipe';
-import { CreateProductDto, UpdateProductDto } from 'src/dtos/products.dto';
+import { CreateProductDto, UpdateProductDto } from '../dtos/products.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -25,9 +25,9 @@ export class ProductsController {
 
   @Get('/')
   getProducts(
-    @Query('limit') limit: number = 100,
-    @Query('offset') offset: number = 0,
-    @Query('brand') brand: string
+    @Query('limit', ParseIntPipe) limit: number = 100,
+    @Query('offset', ParseIntPipe) offset: number = 0,
+    @Query('brand', ParseIntPipe) brand: string
   ) {
     // return {
     //   message: `Products: limit => ${limit}, offset => ${offset}BRAND: ${brand}`
@@ -67,7 +67,7 @@ export class ProductsController {
   @Put('/:productId')
   update(
     // @Res() response: Response,
-    @Param('productId') productId: number,
+    @Param('productId', ParseIntPipe) productId: number,
     @Body() payload: UpdateProductDto
   ) {
     // response.status(200).json({
@@ -79,14 +79,13 @@ export class ProductsController {
     //   productId,
     //   payload
     // }
-    console.log(productId, payload)
     return this.productsService.update(Number(productId), payload)
 
   }
 
   @Delete('/:productId')
   delete(
-    @Param('productId') productId: number,
+    @Param('productId', ParseIntPipe) productId: number,
   ) {
     return this.productsService.delete(Number(productId))
   }
