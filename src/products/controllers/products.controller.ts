@@ -16,7 +16,9 @@ import { Response } from 'express'
 import { ProductsService } from 'src/products/services/products.service';
 import { ParseIntPipe } from 'src/common/parse-int.pipe';
 import { CreateProductDto, UpdateProductDto } from '../dtos/products.dto';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('Products')
 @Controller('products')
 export class ProductsController {
 
@@ -24,6 +26,9 @@ export class ProductsController {
   }
 
   @Get('/')
+  @ApiOperation({
+    summary:'List the products from the database'
+  })
   getProducts(
     @Query('limit', ParseIntPipe) limit: number = 100,
     @Query('offset', ParseIntPipe) offset: number = 0,

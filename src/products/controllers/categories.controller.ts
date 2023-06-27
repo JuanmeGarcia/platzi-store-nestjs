@@ -10,7 +10,9 @@ import {
 import { ParseIntPipe } from 'src/common/parse-int.pipe';
 import { CreateCategoryDto } from '../dtos/categories.dto';
 import { CategoriesService } from '../services/categories.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Categories')
 @Controller('categories')
 export class CategoriesController {
 
