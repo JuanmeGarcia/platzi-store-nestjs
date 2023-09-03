@@ -30,14 +30,16 @@ export class ProductsController {
     summary:'List the products from the database'
   })
   getProducts(
-    @Query('limit', ParseIntPipe) limit: number = 100,
-    @Query('offset', ParseIntPipe) offset: number = 0,
-    @Query('brand', ParseIntPipe) brand: string
   ) {
     // return {
     //   message: `Products: limit => ${limit}, offset => ${offset}BRAND: ${brand}`
     // }
     return this.productsService.findAll()
+      .then(res => res)
+      .catch(err => {
+        console.log(err);
+        return 'Hubo un error'
+      })
   }
 
   @Get('/filter')
@@ -48,13 +50,14 @@ export class ProductsController {
   }
 
   @Get('/:productId')
-  @HttpCode(HttpStatus.ACCEPTED)
+  @HttpCode(HttpStatus.OK)
   getProduct(@Param('productId', ParseIntPipe) productId: number) {
-    // return {
-    //   message: `Product: ${productId}`
-    // };
-
     return this.productsService.findOne(productId)
+      .then(res => res)
+      .catch(err => {
+        console.log(err);
+        return 'Hubo un error'
+      })
   }
 
   @Post()
@@ -84,7 +87,7 @@ export class ProductsController {
     //   productId,
     //   payload
     // }
-    return this.productsService.update(Number(productId), payload)
+    return this.productsService.update(productId, payload)
 
   }
 
@@ -92,6 +95,6 @@ export class ProductsController {
   delete(
     @Param('productId', ParseIntPipe) productId: number,
   ) {
-    return this.productsService.delete(Number(productId))
+    return this.productsService.delete(productId)
   }
 }

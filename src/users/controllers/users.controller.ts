@@ -27,6 +27,15 @@ export class UsersController {
     return this.usersService.findAll()
   }
 
+  @Get('/tasks')
+  getTasks() {
+    return this.usersService.getTasks()
+    .catch((err) => {
+      console.log(err);
+      return err
+    })
+  }
+
   @Get('/:userId')
   getUser(@Param('userId', ParseIntPipe) userId: number) {
     return this.usersService.findOne(userId)
@@ -36,7 +45,6 @@ export class UsersController {
   getUserOrders(@Param('userId', ParseIntPipe) userId: number) {
     return this.usersService.getOrdersByUser(userId)
   }
-
 
   @Post()
   create(

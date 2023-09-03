@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { AppService } from './app.service';
+import { AppService, Task } from './app.service';
 
 @Controller()
 export class AppController {
@@ -8,5 +8,9 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+  @Get('/tasks')
+  getTasks(): Promise<Task[]> {
+    return this.appService.getTasks()
   }
 }

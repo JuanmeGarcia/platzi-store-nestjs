@@ -1,56 +1,68 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBrandDto, UpdateBrandDto } from 'src/products/dtos/brands.dto';
 import { Brand } from '../entities/brand.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+const NOT_FOUND_ERROR = 'Marca no encontrada'
 
 @Injectable()
 export class BrandsService {
-  private counterId = 1;
-  private brands: Brand[] = [
-    {
-      id: 1,
-      name: 'Brand 1',
-      image: 'https://i.imgur.com/U4iGx1j.jpeg',
-    },
-  ];
 
-  findAll() {
-    return this.brands;
+  constructor(
+    @InjectRepository(Brand) private readonly brandRepository: Repository<Brand>
+  ) {}
+
+  async findAll(): Promise<Brand[]> {
+    try {
+      return await this.brandRepository.find()
+    } catch (error) {
+      console.log({error: error.message});
+      return error.message
+    }
   }
 
-  findOne(id: number) {
-    const product = this.brands.find((item) => item.id === id);
-    if (!product) {
+  async findOne(id: number): Promise<Brand> {
+    const brand = await this.brandRepository.findOneBy({id})
+
+    if (!brand) {
       throw new NotFoundException(`Brand #${id} not found`);
     }
-    return product;
+
+    return brand;
   }
 
-  create(data: CreateBrandDto) {
-    this.counterId = this.counterId + 1;
-    const newBrand = {
-      id: this.counterId,
-      ...data,
-    };
-    this.brands.push(newBrand);
-    return newBrand;
-  }
-
-  update(id: number, changes: UpdateBrandDto) {
-    const brand = this.findOne(id);
-    const index = this.brands.findIndex((item) => item.id === id);
-    this.brands[index] = {
-      ...brand,
-      ...changes,
-    };
-    return this.brands[index];
-  }
-
-  remove(id: number) {
-    const index = this.brands.findIndex((item) => item.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Brand #${id} not found`);
+  async create(data: CreateBrandDto): Promise<Brand> {
+    try {
+      const newBrand = await this.brandRepository.create(data)
+      return await this.brandRepository.save(newBrand)
+    } catch (error) {
+      console.log({error: error.message});
+      return error.message
     }
-    this.brands.splice(index, 1);
-    return true;
+  }
+
+  async update(id: number, changes: UpdateBrandDto): Promise<Brand> {
+    try {
+      const brand = await this.findOne(id);
+
+      await this.brandRepository.merge(brand, changes)
+      return await this.brandRepository.save(brand)
+    } catch (error) {
+      console.log({error: error.message});
+      return error.message
+    }
+  }
+
+  async delete(id: number): Promise<boolean> {
+    try {
+      await this.findOne(id)
+
+      await this.brandRepository.delete(id)
+      return true
+    } catch (error) {
+      console.log({error: error.message});
+      return false
+    }
   }
 }
