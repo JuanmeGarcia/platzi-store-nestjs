@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { CreateCategoryDto, UpdateCategoryDto } from '../dtos/categories.dto';
 import { Category } from '../entities/category.entity';
 import { getIndex, getOne } from 'src/utils';
@@ -24,8 +24,17 @@ export class CategoriesService {
   }
 
   async findOne(id: number): Promise<Category> {
-    const category = await this.categoryRepository.findOneBy({ id })
-    if (!category) { throw new NotFoundException(NOT_FOUND_ERROR) }
+    const category = await this.categoryRepository.findOne({
+      relations: ['products'],
+      where: {
+        id
+      }
+    })
+    if (!category) {
+      Logger.error(`No se ha encontrado la categoria con id ${id}`, 'Database')
+
+      throw new NotFoundException(NOT_FOUND_ERROR)
+    }
 
     return category
   }

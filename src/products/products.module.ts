@@ -30,6 +30,6 @@ import { Brand } from './entities/brand.entity';
     CategoriesService,
     BrandsService
   ],
-  exports: [ProductsService]
+  exports: [ProductsService, TypeOrmModule]
 })
 export class ProductsModule {}

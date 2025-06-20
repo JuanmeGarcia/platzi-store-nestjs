@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { CreateBrandDto, UpdateBrandDto } from 'src/products/dtos/brands.dto';
 import { Brand } from '../entities/brand.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,9 +23,15 @@ export class BrandsService {
   }
 
   async findOne(id: number): Promise<Brand> {
-    const brand = await this.brandRepository.findOneBy({id})
+    const brand = await this.brandRepository.findOne({
+      relations: ['products'],
+      where: {
+        id
+      }
+    })
 
     if (!brand) {
+      Logger.error(`No se ha encontrado la marca con id ${id}`, 'Database')
       throw new NotFoundException(`Brand #${id} not found`);
     }
 
@@ -35,7 +41,7 @@ export class BrandsService {
   async create(data: CreateBrandDto): Promise<Brand> {
     try {
       const newBrand = await this.brandRepository.create(data)
-      return await this.brandRepository.save(newBrand)
+      return this.brandRepository.save(newBrand)
     } catch (error) {
       console.log({error: error.message});
       return error.message

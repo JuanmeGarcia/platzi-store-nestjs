@@ -27,7 +27,7 @@ export class AppService {
   }
 
   getTasks(): Promise<Task[]> {
-    return this.clientPg.query('SELECT * FROM tasks')
+    return this.clientPg.query('SELECT * FROM users')
     .then(response => response.rows)
     .catch(err => {
       console.log({

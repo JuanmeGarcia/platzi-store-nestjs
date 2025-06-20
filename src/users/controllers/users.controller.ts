@@ -7,8 +7,8 @@ import {
   Body,
   Put,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
-import { ParseIntPipe } from 'src/common/parse-int.pipe';
 import { CreateUserDto, UpdateUserDto } from 'src/users/dtos/users.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -41,10 +41,10 @@ export class UsersController {
     return this.usersService.findOne(userId)
   }
 
-  @Get('/:userId/orders')
-  getUserOrders(@Param('userId', ParseIntPipe) userId: number) {
-    return this.usersService.getOrdersByUser(userId)
-  }
+  // @Get('/:userId/orders')
+  // getUserOrders(@Param('userId', ParseIntPipe) userId: number) {
+  //   return this.usersService.getOrdersByUser(userId)
+  // }
 
   @Post()
   create(

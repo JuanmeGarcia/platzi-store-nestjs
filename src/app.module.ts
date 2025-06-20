@@ -12,6 +12,9 @@ import { DatabaseModule } from './database/database.module';
 import { enviroments } from './enviroments';
 import config from './config';
 import { configSchema } from './configSchema';
+import { APP_FILTER } from '@nestjs/core';
+import { GlobalExceptionFilter } from './filters/QueryFailedError';
+import { AuthModule } from './auth/auth.module';
 
 const URL = 'https://jsonplaceholder.typicode.com/todos'
 
@@ -26,7 +29,8 @@ const URL = 'https://jsonplaceholder.typicode.com/todos'
     UsersModule,
     ProductsModule,
     HttpModule,
-    DatabaseModule
+    DatabaseModule,
+    AuthModule
   ],
   controllers: [
     AppController,
@@ -41,6 +45,10 @@ const URL = 'https://jsonplaceholder.typicode.com/todos'
         return tasks.data
       },
       inject: [HttpService]
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter
     }
   ],
 })

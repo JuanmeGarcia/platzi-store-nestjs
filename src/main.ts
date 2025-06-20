@@ -1,7 +1,9 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { ClassSerializerInterceptor } from '@nestjs/common'
 import { ValidationPipe } from '@nestjs/common/pipes';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from './filters/QueryFailedError';
 
 
 async function bootstrap() {
@@ -9,8 +11,21 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true
+      }
   }))
+
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(
+      Reflector
+    ))
+  )
+
+  app.useGlobalFilters(
+    new GlobalExceptionFilter
+  )
 
   const config = new DocumentBuilder()
     .setTitle('Platzi Store')

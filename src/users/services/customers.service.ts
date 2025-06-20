@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { CreateCustomerDto, UpdateCustomerDto } from '../dtos/customers.dto';
 import { Customer } from '../entities/customer.entity';
 import { getIndex, getOne } from 'src/utils';
@@ -21,14 +21,17 @@ export class CustomersService {
   async findOne(id: number): Promise<Customer> {
     const customer = this.customerRepository.findOneBy({ id })
 
-    if (!customer) { throw new NotFoundException(NOT_FOUND_ERROR) }
+    if (!customer) {
+      Logger.error(`No se ha encontrado el cliente con id ${id}`, 'Database')
+      throw new NotFoundException(NOT_FOUND_ERROR)
+    }
     return customer
   }
 
   async create(payload: CreateCustomerDto): Promise<Customer> {
     try {
       const newCustomer = await this.customerRepository.create(payload)
-      return await this.customerRepository.save(newCustomer)
+      return this.customerRepository.save(newCustomer)
     } catch (error) {
       return error.message
     }

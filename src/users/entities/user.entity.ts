@@ -1,5 +1,5 @@
 import {
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   Column,
   Entity,
   OneToOne,
@@ -7,17 +7,23 @@ import {
 } from 'typeorm';
 import { BasicEntity } from '../../database/base.entity';
 import { Customer } from './customer.entity'
+import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'users' })
 export class User extends BasicEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number
+
   @Column({type: 'varchar', length: 35, nullable: false})
   userName: string
+
   @Column({type: 'varchar', length: 50, nullable: false})
   email: string
-  @Column({type: 'varchar', length: 50, nullable: false})
+
+  @Exclude()
+  @Column({type: 'varchar', length: 256, nullable: false})
   password: string
+
   @Column({type: 'varchar', length: 50})
   role: string
 

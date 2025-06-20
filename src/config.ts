@@ -14,6 +14,7 @@ export default registerAs('config', () => {
         port: parseInt(process.env.POSTGRES_PORT),
         host: process.env.POSTGRES_HOST
       },
-      apikey: process.env.API_KEY
+      apikey: process.env.API_KEY,
+      jwtSecret: process.env.JWT_SECRET
   }
 })

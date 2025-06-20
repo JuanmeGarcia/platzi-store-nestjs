@@ -1,14 +1,12 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config/dist';
+import { Injectable, Inject, NotFoundException, Logger } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from 'src/users/dtos/users.dto';
 import { User } from 'src/users/entities/user.entity';
-import { Order } from '../entities/order.entity';
-import { getIndex, getOne } from 'src/utils';
-import { ProductsService } from 'src/products/services/products.service';
+import { CustomersService } from './customers.service';
 import { Client } from 'pg';
 import { Task } from 'src/app.service';
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm';
+import { encryptPassword } from '../../common/utils';
 
 const NOT_FOUND_ERROR = 'Usuario no encontrado'
 
@@ -16,33 +14,57 @@ const NOT_FOUND_ERROR = 'Usuario no encontrado'
 export class UsersService {
 
   constructor(
-    private productsService: ProductsService,
-    private configService: ConfigService,
+    private readonly customerService: CustomersService,
     @Inject('PG') private clientPg: Client,
     @InjectRepository(User) private readonly userRepository: Repository<User>
     ) {}
 
 
   async findAll(): Promise<User[]> {
-    return await this.userRepository.find()
+    return await this.userRepository.find({
+      relations: ['customer']
+    })
   }
 
   async findOne(id: number): Promise<User> {
     const user = await this.userRepository.findOneBy({ id })
 
-    if (!user) { throw new NotFoundException(NOT_FOUND_ERROR) }
+    if (!user) {
+      Logger.error(`No se ha encontrado el usuario con id ${id}`, 'Database')
+      throw new NotFoundException(NOT_FOUND_ERROR)
+    }
 
     return user
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    try {
+      return this.userRepository.findOne({
+        where: { email }
+      })
+    } catch (error) {
+      return error.message
+    }
   }
 
   async create(payload: CreateUserDto): Promise<User> {
     try {
       const newUser = await this.userRepository.create(payload)
-      return await this.userRepository.save(newUser)
+      await encryptPassword(newUser)
+      if(payload.customerId) {
+        const customer = await this.customerService.findOne(payload.customerId)
+        if(!customer) {
+          throw new NotFoundException('No se ha encontrado el cliente')
+        }
+        newUser.customer = customer
+      }
+
+      return this.userRepository.save(newUser)
     } catch (error) {
       return error.message
     }
   }
+
 
   async update(id: number, payload: UpdateUserDto): Promise<User> {
     try {
@@ -66,16 +88,7 @@ export class UsersService {
     }
   }
 
-  async getOrdersByUser(id: number): Promise<Order> {
-    const user = await this.findOne(id)
-    const products = await this.productsService.findAll()
-    return {
-      id,
-      date: new Date(),
-      user,
-      products
-    }
-  }
+
 
   getTasks(): Promise<Task[]> {
     return this.clientPg.query('SELECT * FROM tasks')

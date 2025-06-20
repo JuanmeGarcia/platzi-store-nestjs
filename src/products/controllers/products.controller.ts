@@ -11,13 +11,18 @@ import {
   HttpCode,
   // ParseIntPipe
   // Res
+  UseGuards
 } from '@nestjs/common';
-import { Response } from 'express'
 import { ProductsService } from 'src/products/services/products.service';
 import { ParseIntPipe } from 'src/common/parse-int.pipe';
-import { CreateProductDto, UpdateProductDto } from '../dtos/products.dto';
+import { CreateProductDto, FilterProductsDto, UpdateProductDto } from '../dtos/products.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { JwtAuthGuard, RolesGuard } from '../../auth/guards'
+import { Public } from '../../auth/decorators'
+import { Roles } from '../../auth/decorators';
+import { Role } from '../../auth/models/roles.model';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
@@ -25,16 +30,19 @@ export class ProductsController {
   constructor(private productsService: ProductsService) {
   }
 
+  @Public()
   @Get('/')
   @ApiOperation({
     summary:'List the products from the database'
   })
   getProducts(
+    @Query() querys: FilterProductsDto,
   ) {
+
     // return {
     //   message: `Products: limit => ${limit}, offset => ${offset}BRAND: ${brand}`
     // }
-    return this.productsService.findAll()
+    return this.productsService.findAll(querys)
       .then(res => res)
       .catch(err => {
         console.log(err);
@@ -49,17 +57,18 @@ export class ProductsController {
     };
   }
 
+  @Public()
   @Get('/:productId')
   @HttpCode(HttpStatus.OK)
   getProduct(@Param('productId', ParseIntPipe) productId: number) {
     return this.productsService.findOne(productId)
       .then(res => res)
       .catch(err => {
-        console.log(err);
-        return 'Hubo un error'
+        return err.response
       })
   }
 
+  @Roles(Role.ADMIN)
   @Post()
   createProduct(
     @Body() payload: CreateProductDto
@@ -70,6 +79,15 @@ export class ProductsController {
     // }
 
     return this.productsService.create(payload)
+  }
+
+  @Put(':id/categories/:categoryId')
+  addCategoryToProduct(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('categoryId', ParseIntPipe) caategoryId: number
+  ) {
+    return this.productsService
+      .addCategoryToProduct(id, caategoryId)
   }
 
   @Put('/:productId')
@@ -96,5 +114,14 @@ export class ProductsController {
     @Param('productId', ParseIntPipe) productId: number,
   ) {
     return this.productsService.delete(productId)
+  }
+
+  @Delete(':id/categories/:categoryId')
+  deleteCategory(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('categoryId', ParseIntPipe) caategoryId: number
+  ) {
+    return this.productsService
+      .removeCategoryByProduct(id, caategoryId)
   }
 }
